@@ -8,8 +8,6 @@ Technology Stack
 
 LayerTechnologyWhySource dataNYC TLC Trip Records (BigQuery public dataset, ~36M trips, 2022)Real production-scale data; hosted raw layer means the source is immutable and reproducible by anyoneWarehouseGoogle BigQuery (sandbox)Serverless cloud warehouse; staging built as views = zero storage costTransformationdbt Core 1.11Version-controlled SQL models, dependency-aware builds, automated testing, generated documentation & lineageModeling patternStar schema (1 fact, 2 dimensions)BI-optimized: fast aggregation, intuitive joins, single source of truth for metricsBI / VisualizationTableau PublicInteractive published dashboard; free tier constraint (no live BigQuery connection) handled via a deliberately designed aggregate extractAuth & toolinggcloud CLI (ADC oauth), Git, PowerShellCredentials stored outside the repo; never committed
 
-Architecture
-
 bigquery-public-data.new_york_taxi_trips          RAW (read in place, never copied)
         │
         ▼  dbt STAGING (views): rename, type-cast, validity filters
@@ -24,7 +22,8 @@ bigquery-public-data.new_york_taxi_trips          RAW (read in place, never copi
         ▼  aggregated extract (day × hour × borough × payment grain)
    Tableau Public dashboard
 
-(Insert dbt docs lineage DAG screenshot here — generated with dbt docs generate)
+<img width="2732" height="1464" alt="dbt_project" src="https://github.com/user-attachments/assets/5bd15162-195f-44d5-8d63-8873de37c18c" />
+
 
 Pipeline, Step by Step
 
