@@ -1,0 +1,16 @@
+# Copy this file to ~/.dbt/profiles.yml and fill in your GCP project id.
+# Auth method here is oauth (easiest): run `gcloud auth application-default login`
+# once, or use `dbt init` which walks you through it.
+
+nyc_taxi:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: oauth
+      project: YOUR_GCP_PROJECT_ID     # <- your sandbox project id
+      dataset: taxi_dev                # dbt will create this dataset
+      location: US                     # public taxi data lives in US multi-region
+      threads: 4
+      job_execution_timeout_seconds: 300
+      priority: interactive
