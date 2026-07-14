@@ -51,12 +51,43 @@ dbt test runs schema tests (not_null, unique, accepted_values, fact→dimension 
 
 Every dashboard metric has a written definition in docs/kpi_definitions.md, including grain statements and known limitations — e.g., cash tips are not recorded in TLC data, so tip metrics are credit-card-biased and labeled as such on the dashboard.
 
+Analysis of 35.4M valid yellow-cab trips, 2022 ($758M total revenue, $14.56 avg fare):
+
+1. **Evening is the business.** Demand peaks at 6 PM (~6,900 trips per hour on an
+   average day), with 5–7 PM forming the top three hours of the day. Fleet
+   availability and driver incentives should be weighted toward the evening peak,
+   not split evenly across a "rush hour" concept.
+
+2. **Two airports = a fifth of the market.** JFK ($102.4M) and LaGuardia ($44.4M)
+   are the top revenue zones, together generating ~19% of citywide revenue from
+   just ~7% of trips — airport trips are ~3× more valuable than average. Combined
+   with Manhattan's 76% revenue share, yellow-cab economics reduce to Manhattan
+   streets + airport queues.
+
+3. **The tipping story is a payment-rails story.** Credit-card trips (77% of
+   volume) tip 23.5% of fare on average. Cash trips show 0% — not because cash
+   riders don't tip, but because **cash tips are structurally unrecorded in TLC
+   data**. The dashboard labels this rather than reporting a misleading zero.
+
+4. **Congestion halves productivity.** Average speeds fall from 21.4 mph at 5 AM
+   to 10.3 mph at 3–4 PM. A driver's afternoon hour covers half the distance of
+   a dawn hour — peak-hour economics are driven by time-in-traffic, not miles.
+
 7. BI extract — a deliberate modeling decision
 
 Tableau Public cannot connect live to BigQuery, and the 36M-row fact table exceeds local extract limits (BigQuery's local CSV export silently truncates at ~16K rows — discovered and fixed during development). The solution: an aggregate extract at exactly the dashboard's grain (day × hour × borough × payment type), plus a small zone-level extract for zone rankings. Full totals in Tableau reconcile to warehouse SQL.
 
 8. Dashboard (Tableau Public)
+## Validation
 
+- Tableau KPI totals reconcile to warehouse SQL: 35,443,276 trips / $758M revenue
+  (verified after extract redesign — initial local CSV export silently truncated
+  at ~16K rows; caught by reconciling against `SUM()` in BigQuery).
+- Outlier exclusion: 2.16% of raw trips removed under documented rules
+  (see docs/kpi_definitions.md).
+- 1.9% of revenue maps to a null borough — trips referencing retired TLC zone IDs,
+  surfaced by dbt's referential-integrity test (severity: warn) and documented
+  rather than silently dropped.
 
 Page 1 — City Pulse: KPI row (trips, revenue, avg fare, tip %), hour × weekday demand heatmap, daily trend with weekend highlighting, borough revenue
 Page 2 — Zone Economics: top pickup zones by revenue, tip % by borough and payment type, average speed by hour (congestion)
